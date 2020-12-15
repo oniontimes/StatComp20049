@@ -1,0 +1,133 @@
+#' @title Standard simplex algorithm
+#' @name Lp
+#' @description In mathematical optimization, Dantzig's simplex algorithm (or simplex method) is a popular algorithm for linear programming.
+#' @param cost cost function parameter vector after adding surplus variable
+#' @param A coefficient matrix after adding surplus variable
+#' @param b constant vector
+#' @return Best solver \code{x}
+#' @examples
+#' \dontrun{
+#' A = rbind(
+#' c(1,2,-1,0),
+#' c(2,1,0,-1))
+#' b = c(6,6)
+#' cost = c(1,1,0,0)
+#' x <- Lp(A, b, cost)
+#' print(x)
+#' print(cost %*% x)
+#' }
+#' @export
+Lp <- function(A, b, cost) {
+  m = dim(A)[1]
+  n = dim(A)[2] - m
+  indices = 1:(m+n)
+  
+  # step 1: pick a feasible corner
+  combs = t(combn(indices, n))
+  feasible = FALSE
+  for (i in 1:choose(m+n, n)) {
+    free = combs[i,]     # the indices of the free variables (those set to 0)
+    pivots = setdiff(indices, free)    # indices of the pivots (not free)
+    
+    corner = rep(0,m+n)
+    corner[pivots] = solve(A[,pivots], b)
+    if (all(corner >= 0)) {
+      feasible = TRUE
+      break
+    }
+  }
+  if (!feasible) {
+    print('no feasible solution--go optimize something else!')
+    return(NULL)
+  }
+  
+  
+  # step 2: slide around the edges until the optimal corner is found
+  N <- A[,free]
+  B <- A[,pivots]
+  c_n <- cost[free]
+  c_b <- cost[pivots]
+  
+  r <- c_n - (c_b %*% solve(B) %*% N)
+  while (any(r < 0)) {
+    # the total cost at this corner is greater than the cost of including one of
+    # the free variables instead of one of the pivots. the best two to swap are:
+    entering <- which.min(r)
+    
+    B_inv <- solve(B)
+    u <- N[,entering]
+    z <- (B_inv %*% b)/(B_inv %*% u)
+    leaving <- which.min(z)
+    
+    # swap entering and leaving
+    temp <- pivots[leaving]
+    pivots[leaving] <- free[entering]
+    free[entering] <- temp
+    
+    N <- A[,free]
+    B <- A[,pivots]
+    c_n <- cost[free]
+    c_b <- cost[pivots]
+    
+    r <- c_n - (c_b %*% solve(B) %*% N)
+  }
+  
+  corner = rep(0,m+n)
+  corner[pivots] = solve(A[,pivots], b)
+  corner
+}
+
+
+#' @title Gradient descent algorithm
+#' @name GD
+#' @description use Gradient Descent Algorithm which to find the optimal intercept and gradient for any set of data in which a linear relationship exists.
+#' @param X observed data
+#' @param Y corresponding data
+#' @param rate the slope of the MSE function
+#' @param threshold convergence threshold
+#' @param max_iter maximum number of iterations 
+#' @return Optimal intercept \code{c}
+#' @return Optimal slope \code{m}
+#' @examples
+#' \dontrun{
+#' attach(mtcars)
+#' GD(disp, mpg, 0.0000293, 0.001, 2500000)
+#' }
+#' @importFrom Rcpp evalCpp
+#' @useDynLib StatComp20049
+#' @export
+GD <- function(x, y, rate, threshold, max_iter) {
+  n=length(y)
+  m <- runif(1, 0, 1)
+  c <- runif(1, 0, 1)
+  yhat <- m * x + c
+  MSE <- sum((y - yhat) ^ 2) / n
+  converged = F
+  iterations = 0
+  while(converged == F) {
+    ## Implement the gradient descent algorithm
+    m_new <- m - rate * ((1 / n) * (sum((yhat - y) * x)))
+    c_new <- c - rate * ((1 / n) * (sum(yhat - y)))
+    m <- m_new
+    c <- c_new
+    yhat <- m * x + c
+    MSE_new <- sum((y - yhat) ^ 2) / n
+    if(MSE - MSE_new <= threshold) {
+      converged = T
+      return(paste("Optimal intercept:", c, "Optimal slope:", m))
+    }
+    iterations = iterations + 1
+    if(iterations > max_iter) { 
+      converged = T
+      return(paste("Optimal intercept:", c, "Optimal slope:", m))
+    }
+  }
+}
+
+
+
+
+
+
+
+

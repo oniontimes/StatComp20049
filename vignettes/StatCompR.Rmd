@@ -1,0 +1,10 @@
+---
+title: "StatCompR"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{StatCompR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
