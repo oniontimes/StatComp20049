@@ -7,4 +7,81 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## Overview
+
+__StatComp20049__ is a simple R package developed to simulate Dantzig selector procedure of Candes-Tao and meanwhile solve two optimization method: standard simplex algorithm and gradient descent algorithm.
+
+## standard simplex algorithm
+
+The simplex algorithm is the classical method to solve the optimization problem of linear programming. We first reformulate the problem into the standard form in which all constraints are expressed as equalities.  
+
+Any constraint in inequality form
+$$
+a_{i 1} x_{1}+\cdots+a_{i n} x_{n} \leq b_{i}
+$$
+is converted to an equality
+$$
+a_{i 1} x_{1}+\cdots+a_{i n} x_{n}+s_{i}=b_{i}
+$$
+where $s_{i} \geq 0$ is a slack variable. Next is my _LP_ function:
+
+```{r}
+library(StatComp20049)
+A = rbind(
+c(1,2,-1,0),
+c(2,1,0,-1))
+b = c(6,6)
+cost = c(1,1,0,0)
+x <- Lp(A, b, cost)
+cat("best x is", x)
+cat(" min cost is", cost %*% x)
+```
+
+## gradient descent algorithm
+
+Gradient descent is a first-order iterative optimization algorithm for finding a local minimum of a differentiable function. The idea is to take repeated steps in the opposite direction of the gradient (or approximate gradient) of the function at the current point, because this is the direction of steepest descent. Conversely, stepping in the direction of the gradient will lead to a local maximum of that function; the procedure is then known as gradient ascent. We try to find the optimal intercept and gradient of:
+$$
+Y=mX+c
+$$
+So, we have _GD_:
+```{r}
+attach(mtcars)
+GD(disp, mpg, 0.0000293, 0.001, 2500000)
+```
+
+## Dantzig selector
+
+Linear Model:
+	$$
+	y=X \beta+z
+	$$
+	$y \in \mathbf{R}^{n}$ is a vector of observations, $X$ is an $n \times p$ predictor matrix, and $z$ a vector of stochastic measurement errors and $z \sim N\left(0, \sigma^{2} I_{n}\right)$, $\beta$ is S-sparse. \textcolor{red}{$p$ is much larger than $n$.}\\~\\
+	DS:
+	$$
+	\min _{\tilde{\beta} \in \mathbf{R}^{p}}\|\tilde{\beta}\|_{\ell_{1}} \quad \text { subject to } \quad\left\|X^T r\right\|_{\ell_{\infty}}:=\sup _{1 \leq i \leq p}\left|\left(X^T r\right)_{i}\right| \leq \lambda_{p} \cdot \sigma
+	$$
+	where $r$ is the vector of residuals
+	$$
+	r=y-X\tilde{\beta}
+	$$
+The program (DS) is convex, and can be recast as a linear program (LP):
+	$$
+	\min\sum _{i} u_{i}\quad \text { subject to } \quad-u \leq \tilde{\beta} \leq u \quad -\lambda_{p} \sigma I \leq X^T(y-X \tilde{\beta}) \leq \lambda_{p} \sigma I
+	$$
+	where the optimization variables are $u, \tilde{\beta} \in R^{p}$.
+
+We can use primal–dual interior-point algorithm to solve. Here is my function _DSelector_:
+```{r}
+a=GSD(n=72,p=256,spa=8)
+X=a$X
+Y=a$Y
+theta=sqrt(8/72)/3
+DSelector(X,Y,theta)
+```
+
+
+
+
+
+
 

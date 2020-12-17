@@ -8,7 +8,7 @@ Maintainer: Cong Cheng <453145416@qq.com>
 Description: There are two my R functions and all my homeworks in 2020 Fall.
 License: GPL (>= 2)
 Suggests: knitr, rmarkdown
-Imports: Rcpp (>= 1.0.5), MASS, bootstrap, boot, DAAG, RANN, Ball, energy, nloptr, microbenchmark
+Imports: Rcpp, MASS, bootstrap, boot, DAAG, RANN, Ball, energy, nloptr, microbenchmark, quantreg
 LinkingTo: Rcpp
 Encoding: UTF-8
 VignetteBuilder: knitr
